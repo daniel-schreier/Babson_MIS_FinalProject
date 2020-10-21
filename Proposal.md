@@ -53,4 +53,7 @@ Additional Course Content: What are some topics that we might cover in class tha
 
 Object-Oriented programming may prove useful.
 
+Date for project completion: end of semester
+
+
 
