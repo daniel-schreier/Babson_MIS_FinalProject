@@ -195,7 +195,7 @@ class Bar:
 
 
     def to_wav(self, fn):
-        """Writes chords and notes to output filename""""
+        """Writes chords and notes to output filename"""
         pass
 
         
