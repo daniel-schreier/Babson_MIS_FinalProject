@@ -1,5 +1,5 @@
 import numpy as np
-from tomita.legacy import pysynth_b as Synth
+from tomita.legacy import pysynth_c as Synth
 import random
 import wave
 
@@ -30,6 +30,21 @@ def mix_wavs(input_fns, out_fn="./mix.wav"):
     mix_wav.close()
 
 
+def append_wavs(input_fns, out_fn="./mix.wav"):
+    data= []
+    for infile in input_fns:
+        w = wave.open(infile, 'rb')
+        data.append( [w.getparams(), w.readframes(w.getnframes())] )
+        w.close()
+        
+    output = wave.open(out_fn, 'wb')
+    output.setparams(data[0][0])
+    for i in range(len(data)):
+        output.writeframes(data[i][1])
+
+    output.close()
+
+
 class Note:
     valid_notes = set(['a', 'a#', 'b', 'c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#']).union({'r'})
     valid_lengths = {2**i for i in range(5)}
@@ -53,13 +68,17 @@ class Note:
         return self.name
 
     @classmethod
-    def from_chord(cls, chord):
-        """Constructs a note as a random sample from a chord"""
-        valid_notes = Note.valid_notes.intersection(chord.scale)
+    def from_chord(cls, chord, length):
+        """Return a chord tone note with length from the provided chord"""
+        valid_notes = set(chord.scale.notes)
+        n = random.sample(valid_notes, 1)[0]
 
-        l = random.sample(Note.valid_lengths, 1)
-        n = random.sample(valid_notes, 1)
-        return Note(n, l)
+        return Note(n, length)
+    
+
+    def make_sound(self, fn):
+        """Writes wav of note to filename fn"""
+        Synth.make_wav([(self.name, self.length)], fn=f'{fn}')
 
 
 class Chord:
@@ -82,13 +101,62 @@ class Chord:
     def make_sound(self):
         """Writes self.notes into individual wav files in cd then combines the wav files into an output wavfile"""
         for i, _ in enumerate(self.notes):
-            Synth.make_wav(self.song[i], fn=f"{i}.wav")
+            Synth.make_wav(self.song[i], fn=f"./notes/{i}.wav")
         
-        mix_wavs([f"{i}.wav" for i, _ in enumerate(self.notes)], out_fn=f"{self.root}{self.kind}.wav")
-        
+        mix_wavs([f"./notes/{i}.wav" for i, _ in enumerate(self.notes)], out_fn=f"./chords/{self.root}{self.kind}.wav")
+    
 
-        
+    def to_child(self):
+        cmap = {'major': MajorChord,
+                'minor': MinorChord,
+                'm7b5': M7B5Chord}
+        return cmap[self.kind](self.root)
+    
+    
 
+
+class MajorChord(Chord):
+    def __init__(self, root):
+        super().__init__(root, 'major')
+    
+    def next_chords(self):
+        """Given chord, returns list of possible chords to use next in the progression"""
+        chordmap = {0: ['major', 'minor'],
+                    1: ['minor', 'm7b5'],
+                    3: ['major'],
+                    4: ['major'],
+                    6: ['m7b5']}
+
+        return [Chord(self.scale.notes[i], random.choice(chordmap[i])).to_child() for i in (0, 1, 3, 4, 6)]
+
+
+class MinorChord(Chord):
+    def __init__(self, root):
+        super().__init__(root, 'minor')
+    
+    def next_chords(self):
+        """Given chord, returns list of possible chords to use next in the progression"""
+        chordmap = {0: ['major', 'minor'],
+                    1: ['m7b5', 'minor'],
+                    6: ['major']}
+
+        return [Chord(self.scale.notes[i], random.choice(chordmap[i])).to_child() for i in (0, 1, 6)]
+
+
+class M7B5Chord(Chord):
+    def __init__(self, root):
+        super().__init__(root, 'm7b5')
+    
+    def next_chords(self):
+        """Given chord, returns list of possible chords to use next in the progression"""
+        chordmap = {0: ['m7b5'],
+                    1: ['major'],
+                    3: ['minor', 'm7b5'],
+                    4: ['major', 'minor'],
+                    6: ['major']}
+
+        return [Chord(self.scale.notes[i], random.choice(chordmap[i])).to_child() for i in (0, 1, 3, 4, 6)]
+    
 
 class Scale:
     chromatic_scale = ['a', 'a#', 'b', 'c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#']
@@ -147,7 +215,8 @@ class Scale:
     
     @classmethod
     def build_relative_mode(self, root, mode):
-        """Given root note as str: 'a#'/etc. and mode as str: 'Ionian'/'Dorian'/etc. returns list of strings corresponding to relative mode"""
+        """Given Ionian root note as str: 'a#'/etc. and mode as str: 'Ionian'/'Dorian'/etc. 
+        returns list of strings corresponding to relative mode"""
         p = self.from_ionian_shift(root, self.mode_shifts[mode])
         return p
     
@@ -160,6 +229,7 @@ class Scale:
 
     @classmethod
     def from_chord(cls, chord):
+        """Builds random scale based on provided chord."""
         if chord.kind not in Scale.valid_scales:
             raise ValueError("Scale unknown for provided chord")
 
@@ -181,29 +251,62 @@ class Bar:
         self.chords = []
         self.notes = []
 
-
     
     def build_chords(self):
         """Populates self.chords with randomly-generated chord progression. 
         Assumes Bar.last holds last chord of most recent generated chord"""
-        pass
+        
+        for i in range(4):
+            if self.last == None:
+                self.last = MajorChord('c')
+            
+            new_chord = random.choice(self.last.next_chords())
+            self.chords.append(new_chord)
+            self.last = new_chord
 
     def build_notes(self):
         """Populates self.notes with randomly-generated melody based on chords in self.chords. 
         Place chord tones -> Connect with riffs"""
-        pass
+        for c in self.chords:
+            t = random.choice([4, 8, 16, 8, 8, 8, 16])
+            for i in range(t):
+                self.notes.append(Note.from_chord(c, t))
 
 
-    def to_wav(self, fn):
+
+    def to_wav(self, out_fn):
         """Writes chords and notes to output filename"""
-        pass
+
+        # Synthesize chords, create harmony file
+        chords = []
+        for c in self.chords:
+            c.make_sound()
+            chords.append(f"./chords/{c.root}{c.kind}.wav")
+
+        append_wavs(chords, 'harmony.wav')
+
+        # Synthesize notes, create melody file
+        i = 0
+        notes = []
+        for n in self.notes:
+            fn = f"./notes/note_{i}.wav"
+            n.make_sound(fn)
+            notes.append(fn)
+            i += 1
+
+        # Mix harmony/melody
+        append_wavs(notes, 'melody.wav')
+            
+        mix_wavs(['harmony.wav', 'melody.wav'], out_fn=out_fn)
+
 
         
 def main():
-    n = Note('c#', 1)
-    c = Chord(n, 'major')
-    s = c.scale
-    c.make_sound()
+    for i in range(4):
+        b = Bar()
+        b.build_chords()
+        b.build_notes()
+        b.to_wav(f"./output_{i}.wav")
 
     
 if __name__ == "__main__":
