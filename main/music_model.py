@@ -3,6 +3,7 @@ from tomita.legacy import pysynth_c as Synth
 import random
 import wave
 
+BPM = 90
 
 def mix_wavs(input_fns, out_fn="./mix.wav"):
     """Given a list of input filenames, writes a mix of all inputs into an output wav at out_fn"""
@@ -78,7 +79,7 @@ class Note:
 
     def make_sound(self, fn):
         """Writes wav of note to filename fn"""
-        Synth.make_wav([(self.name, self.length)], fn=f'{fn}')
+        Synth.make_wav([(self.name, self.length)], fn=f'{fn}', bpm=BPM)
 
 
 class Chord:
@@ -101,7 +102,7 @@ class Chord:
     def make_sound(self):
         """Writes self.notes into individual wav files in cd then combines the wav files into an output wavfile"""
         for i, _ in enumerate(self.notes):
-            Synth.make_wav(self.song[i], fn=f"./notes/{i}.wav")
+            Synth.make_wav(self.song[i], fn=f"./notes/{i}.wav", bpm=BPM)
         
         mix_wavs([f"./notes/{i}.wav" for i, _ in enumerate(self.notes)], out_fn=f"./chords/{self.root}{self.kind}.wav")
     
@@ -122,7 +123,7 @@ class MajorChord(Chord):
     def next_chords(self):
         """Given chord, returns list of possible chords to use next in the progression"""
         chordmap = {0: ['major', 'minor'],
-                    1: ['minor', 'm7b5'],
+                    1: ['minor'],
                     3: ['major'],
                     4: ['major'],
                     6: ['m7b5']}
@@ -151,11 +152,11 @@ class M7B5Chord(Chord):
         """Given chord, returns list of possible chords to use next in the progression"""
         chordmap = {0: ['m7b5'],
                     1: ['major'],
-                    3: ['minor', 'm7b5'],
+                    3: ['minor'],
                     4: ['major', 'minor'],
                     6: ['major']}
 
-        return [Chord(self.scale.notes[i], random.choice(chordmap[i])).to_child() for i in (0, 1, 3, 4, 6)]
+        return [Chord(self.scale.notes[i], random.choice(chordmap[i])).to_child() for i in (1, 3, 4, 6)]
     
 
 class Scale:
@@ -205,7 +206,6 @@ class Scale:
         return [cs[i] for i in notes]
             
 
-    @classmethod
     def from_ionian_shift(self, root, shift):
         """given root note and integer amount to shift rightwards, returns the correct mode pattern as a list of strings"""
 
@@ -213,13 +213,14 @@ class Scale:
         shift = shift
         return p[shift:] + p[:shift]
     
-    @classmethod
+
     def build_relative_mode(self, root, mode):
         """Given Ionian root note as str: 'a#'/etc. and mode as str: 'Ionian'/'Dorian'/etc. 
         returns list of strings corresponding to relative mode"""
         p = self.from_ionian_shift(root, self.mode_shifts[mode])
         return p
     
+
     @classmethod
     def build_mode(self, root, mode):
         shift = self.mode_shifts[mode]
@@ -236,15 +237,42 @@ class Scale:
         if chord.kind == 'major':
             sc= cls.build_mode(chord.root, random.choice(['Ionian', 'Mixolydian', 'Lydian']))
         elif chord.kind == 'minor':
-            sc= cls.build_mode(chord.root, random.choice(['Dorian', 'Phrygian', 'Aeolian']))
+            sc= cls.build_mode(chord.root, random.choice(['Dorian', 'Aeolian']))
         else:
             sc = cls.build_mode(chord.root, random.choice(['Locrian', 'Phrygian']))
         
         return Scale(sc)
+    
+
+    def generate_riff(self):
+        """Given a chord to riff on, returns a riff based on the current chord notes"""
+        mask = ['r']*16
+        n_chord_tones = random.randint(2, 5)
+
+        chord_tone = lambda: random.choice([self.notes[i] for i in (0, 2, 4)])
+        scale_tone = lambda: random.choice(self.notes)
+
+        
+
+        start_notes = random.sample([i*2 for i in range(8)], n_chord_tones)
+        chord_tones = [chord_tone() for n in start_notes]
+        lengths = [random.choice([0, 1]) for c in chord_tones]
+
+
+        for pos, c, l in zip(start_notes, chord_tones, lengths):
+            mask[pos] = c
+            if l:
+                mask[pos+1] = c
+        
+        for i, v in enumerate(mask):
+            if v == 'r' and random.random() > 0.4:
+                mask[i] = scale_tone()
+
+        return [Note(v, 16) for v in mask]
 
 
 class Bar:
-    # Variable for keeping track of last chord for harmonic continuity
+    # Variable for keeping track of last chord/note for harmonic/melodic continuity
     last = None
 
     def __init__(self):
@@ -264,13 +292,20 @@ class Bar:
             self.chords.append(new_chord)
             self.last = new_chord
 
+
     def build_notes(self):
         """Populates self.notes with randomly-generated melody based on chords in self.chords. 
-        Place chord tones -> Connect with riffs"""
+        In a future version, maybe Place chord tones -> Connect with riffs...
+        ...today, randomly choose length and notes and go for it!"""
         for c in self.chords:
-            t = random.choice([4, 8, 16, 8, 8, 8, 16])
-            for i in range(t):
-                self.notes.append(Note.from_chord(c, t))
+            
+            # Generate riff sounds terrible
+            for note in c.scale.generate_riff():
+                self.notes.append(note)
+
+            #t = random.choice([4, 8, 16, 8, 8, 8, 16])
+            #for i in range(t):
+            #    self.notes.append(Note.from_chord(c, t))
 
 
 
@@ -301,8 +336,8 @@ class Bar:
 
 
         
-def main():
-    for i in range(4):
+def main(n):
+    for i in range(n):
         b = Bar()
         b.build_chords()
         b.build_notes()
@@ -310,4 +345,5 @@ def main():
 
     
 if __name__ == "__main__":
-    main()
+    main(4)
+
