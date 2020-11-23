@@ -252,6 +252,7 @@ class Scale:
         """Given a chord to riff on, returns a riff based on the current chord notes"""
         mask = ['r']*16
         n_chord_tones = random.randint(2, 5)
+        energy = random.choice([0.4, 0.6, 0.8])
 
         chord_tone = lambda: random.choice([self.notes[i] for i in (0, 2, 4)])
         scale_tone = lambda: random.choice(self.notes)
@@ -268,7 +269,7 @@ class Scale:
                 mask[pos+1] = c
         
         for i, v in enumerate(mask):
-            if v == 'r' and random.random() > 0.4:
+            if v == 'r' and random.random() < energy:
                 mask[i] = scale_tone()
 
         return [Note(v, 16) for v in mask]
