@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"> </script>
+
+
+<body>
+    <h1>Hello, world!</h1>
+    <p>My name is {{name}}.</p>
+
+    <audio controls='controls', onended="playnext()", onplay="createnext()", id='player', muted>
+
+    </audio>
+    
+    
+    <script>
+        function createnext(){
+            $.get('/music/create/1')
+            console.log("Generating next bar...");
+
+        };
+    </script>
+    <script>
+        function playnext(){
+            document.getElementById('player').src = '/music/next';
+            document.getElementById('player').load();
+            document.getElementById('player').pause();
+            document.getElementById('player').play();
+            
+        };
+        document.getElementById('player').src = "/static/output_0.wav";
+        
+    </script>
+    
+    
+</body>
+</html>
