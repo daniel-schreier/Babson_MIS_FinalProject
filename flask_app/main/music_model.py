@@ -2,6 +2,7 @@ import numpy as np
 from tomita.legacy import pysynth_c as Synth
 import random
 import wave
+import os
 
 BPM = 90
 
@@ -12,8 +13,6 @@ def mix_wavs(input_fns, out_fn="temp/mix.wav"):
 
     wavs = [wave.open(fn) for fn in input_fns]
     frames = [w.readframes(w.getnframes()) for w in wavs]
-    for conn in wavs:
-        conn.close()
 
     # here's efficient numpy conversion of the raw byte buffers
     # '<i2' is a little-endian two-byte integer.
@@ -104,10 +103,12 @@ class Chord:
 
     def make_sound(self):
         """Writes self.notes into individual wav files then combines the wav files into an output wavfile"""
-        for i, _ in enumerate(self.notes):
-            Synth.make_wav(self.song[i], fn=f"notes/{i}.wav", bpm=BPM)
-        
-        mix_wavs([f"notes/{i}.wav" for i, _ in enumerate(self.notes)], out_fn=f"chords/{self.root}{self.kind}.wav")
+        chords = os.listdir('chords')
+        if f"{self.root}{self.kind}.wav" not in chords:
+            for i, _ in enumerate(self.notes):
+                Synth.make_wav(self.song[i], fn=f"notes/{i}.wav", bpm=BPM)
+            
+            mix_wavs([f"notes/{i}.wav" for i, _ in enumerate(self.notes)], out_fn=f"chords/{self.root}{self.kind}.wav")
     
 
     def to_child(self):
