@@ -10,7 +10,7 @@ app = Flask(__name__)
 audio_names = []
 
 @app.route('/')
-def hello(name = "Professor!"):
+def hello(name="Professor!"):
     if name:
         return render_template('hello.html', name=name, next=next)
     
