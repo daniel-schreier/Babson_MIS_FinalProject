@@ -7,7 +7,7 @@ import os
 BPM = 90
 
 def mix_wavs(input_fns, out_fn="temp/mix.wav"):
-    """Given a list of input filenames, writes a mix of all inputs into an output wav at out_fn"""
+    """Given a list of input wav file names, mixes them together and creates a new wav file as out_fn"""
     # Shoutout to https://stackoverflow.com/questions/4039158/mixing-two-audio-files-together-with-python
     # for the handy solution to mixing wavs in python
 
@@ -34,6 +34,11 @@ def mix_wavs(input_fns, out_fn="temp/mix.wav"):
 
 
 def append_wavs(input_fns, out_fn="temp/mix.wav"):
+    """
+       Given last of input wav filenames input_fns, joins them together into output file out_fn.
+       Adapted from code above in mix_wavs.
+    """
+
     data= []
     for infile in input_fns:
         w = wave.open(infile, 'rb')
@@ -183,11 +188,11 @@ class Scale:
         return str(self.notes)
         
     @classmethod
-    def construct_mode(self, root, pattern):
+    def construct_mode(cls, root, pattern):
         """Given a list of intervals pattern, returns list of notes corresponding to the mode"""
 
         #This feels ugly but it works for now, can make more efficient later
-        cs = self.chromatic_scale*2
+        cs = cls.chromatic_scale*2
         notes = []
 
         # iterating over repeated chromatic scale
@@ -226,10 +231,10 @@ class Scale:
     
 
     @classmethod
-    def build_mode(self, root, mode):
-        shift = self.mode_shifts[mode]
-        pattern = self.patterns['Ionian'][shift:] + self.patterns['Ionian'][:shift]
-        return self.construct_mode(root, pattern)
+    def build_mode(cls, root, mode):
+        shift = cls.mode_shifts[mode]
+        pattern = cls.patterns['Ionian'][shift:] + self.patterns['Ionian'][:shift]
+        return cls.construct_mode(root, pattern)
 
 
     @classmethod
@@ -249,25 +254,37 @@ class Scale:
     
 
     def generate_riff(self):
-        """Given a chord to riff on, returns a riff based on the current chord notes"""
+        """
+        Returns a randomly-generated riff based on the current chord's chord/scale tones:
+        a list of Note objects corresponding to the notes that should be played at each 1/16 time step in the riff
+        """
+        # Create note list 'mask' and set random energy level for riff and # of chord tones in riff
         mask = ['r']*16
         n_chord_tones = random.randint(2, 5)
         energy = random.choice([0.4, 0.6, 0.8])
 
+        # Functions for generating random chord/scale tones
         chord_tone = lambda: random.choice([self.notes[i] for i in (0, 2, 4)])
         scale_tone = lambda: random.choice(self.notes)
 
-        
+        # Generate list of note starting positions, chord tones to use, and lengths of those chord tones (1/16 or 1/8 note)
         start_notes = random.sample([i*2 for i in range(8)], n_chord_tones)
         chord_tones = [chord_tone() for n in start_notes]
         lengths = [random.choice([0, 1]) for c in chord_tones]
 
-
+        # Iterate over start positions placing chord tones
+        # Chord tones are the notes found in a chord, and in jazz/music solos
+        # Create a sense of resolution/ground the riff in the harmonic context
         for pos, c, l in zip(start_notes, chord_tones, lengths):
+            # Place chord tone
             mask[pos] = c
+
+            # If 1/8 note, place second 1/16 note
             if l:
                 mask[pos+1] = c
         
+        # Generate scale tones, notes which imply an extension of the chord to some new sound
+        # Frequency depends on energy determined at start of riff generation
         for i, v in enumerate(mask):
             if v == 'r' and random.random() < energy:
                 mask[i] = scale_tone()
