@@ -36,7 +36,7 @@ def mix_wavs(input_fns, out_fn="temp/mix.wav"):
 def append_wavs(input_fns, out_fn="temp/mix.wav"):
     """
        Given last of input wav filenames input_fns, joins them together into output file out_fn.
-       Adapted from code above in mix_wavs.
+       Adapted from https://stackoverflow.com/questions/2890703/how-to-join-two-wav-files-using-python.
     """
 
     data= []
@@ -104,6 +104,7 @@ class Chord:
         self.scale = Scale.from_chord(self)
         self.notes = [self.scale.notes[i] for i in (0, 2, 4)]
         self.song = [[(c, i)] for c, i in zip(self.notes, [1,1,1])]
+        self.chordmap = []
     
 
     def make_sound(self):
@@ -121,51 +122,38 @@ class Chord:
                 'minor': MinorChord,
                 'm7b5': M7B5Chord}
         return cmap[self.kind](self.root)
-    
-    
 
+    def next_chords(self):
+        return [Chord(self.scale.notes[i], random.choice(self.chordmap[i])).to_child() for i in (0, 1, 3, 4, 6)]
+    
 
 class MajorChord(Chord):
     def __init__(self, root):
         super().__init__(root, 'major')
-    
-    def next_chords(self):
-        """Given chord, returns list of possible chords to use next in the progression"""
-        chordmap = {0: ['major', 'minor'],
+        self.chordmap = {0: ['major', 'minor'],
                     1: ['minor'],
                     3: ['major'],
                     4: ['major'],
                     6: ['m7b5']}
 
-        return [Chord(self.scale.notes[i], random.choice(chordmap[i])).to_child() for i in (0, 1, 3, 4, 6)]
-
 
 class MinorChord(Chord):
     def __init__(self, root):
         super().__init__(root, 'minor')
-    
-    def next_chords(self):
-        """Given chord, returns list of possible chords to use next in the progression"""
-        chordmap = {0: ['major', 'minor'],
+        self.chordmap = {0: ['major', 'minor'],
                     1: ['m7b5', 'minor'],
                     6: ['major']}
-
-        return [Chord(self.scale.notes[i], random.choice(chordmap[i])).to_child() for i in (0, 1, 6)]
 
 
 class M7B5Chord(Chord):
     def __init__(self, root):
         super().__init__(root, 'm7b5')
-    
-    def next_chords(self):
-        """Given chord, returns list of possible chords to use next in the progression"""
-        chordmap = {0: ['m7b5'],
+        self.chordmap = {0: ['m7b5'],
                     1: ['major'],
                     3: ['minor'],
                     4: ['major', 'minor'],
                     6: ['major']}
-
-        return [Chord(self.scale.notes[i], random.choice(chordmap[i])).to_child() for i in (1, 3, 4, 6)]
+    
     
 
 class Scale:
@@ -233,13 +221,13 @@ class Scale:
     @classmethod
     def build_mode(cls, root, mode):
         shift = cls.mode_shifts[mode]
-        pattern = cls.patterns['Ionian'][shift:] + self.patterns['Ionian'][:shift]
+        pattern = cls.patterns['Ionian'][shift:] + cls.patterns['Ionian'][:shift]
         return cls.construct_mode(root, pattern)
 
 
     @classmethod
     def from_chord(cls, chord):
-        """Builds random scale based on provided chord."""
+        """Builds random scale based on provided chord object."""
         if chord.kind not in Scale.valid_scales:
             raise ValueError("Scale unknown for provided chord")
 
