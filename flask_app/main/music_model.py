@@ -142,6 +142,8 @@ class MinorChord(Chord):
         super().__init__(root, 'minor')
         self.chordmap = {0: ['major', 'minor'],
                     1: ['m7b5', 'minor'],
+                    3: ['major'],
+                    4: ['minor'],
                     6: ['major']}
 
 
