@@ -353,7 +353,7 @@ def main(n, fn):
         b = Bar()
         b.build_chords()
         b.build_notes()
-        b.to_wav(f"{fn}_{i}.wav")
+        b.to_wav(fn)
 
     
 if __name__ == "__main__":

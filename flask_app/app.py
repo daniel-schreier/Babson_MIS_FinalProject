@@ -61,7 +61,7 @@ def get_audio():
     print(fn)
 
     
-    return send_from_directory(fn)
+    return send_file(fn)
 
 
 @app.route('/music/next')
