@@ -43,7 +43,7 @@ def create_bar():
 def populate_queue():
     """
     Function to update queue after audio returned.
-    Triggered by new thread
+    Triggered by new thread so next() returns template and runs in background
     """
 
     l = 10 - len(audio_names)
