@@ -47,7 +47,7 @@ def populate_queue():
 
     l = 10 - len(audio_names)
     for i in range(l):
-        create_bar(1)
+        create_bar()
 
 
 def get_audio():
@@ -72,7 +72,7 @@ def next():
         outp = get_audio()
         
     else:
-        create_bar(1)
+        create_bar()
         outp = get_audio()
     
     # Repopulate Queue while audio plays
