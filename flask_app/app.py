@@ -1,5 +1,8 @@
 from flask import Flask, render_template, send_file, send_from_directory
-from main.music_model import Bar, main
+try:
+    from main.music_model import Bar, main
+except:
+    from music_model import Bar, main
 from shutil import copyfile, copy
 import os
 import re
@@ -13,7 +16,7 @@ number_produced = 0
 
 @app.route('/')
 def hello():
-    return render_template('hello.html', next=next)
+    return render_template('hello.html')
     
 
 def create_bar():
@@ -57,8 +60,8 @@ def get_audio():
     fn = audio_names.pop(0)
     print(fn)
 
-    with open(fn, 'rb') as f:
-        return send_file(f)
+    
+    return send_from_directory(fn)
 
 
 @app.route('/music/next')
