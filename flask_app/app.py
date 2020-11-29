@@ -30,7 +30,7 @@ def create_bar():
         
         # Copy from temp to static
         new = re.sub('temp', 'static', temp_fn)
-        new = re.sub('output', f'{number_produced}', temp_fn)
+        new = re.sub('output', f'{number_produced}', new)
         copy(temp_fn, new)
 
         # Add to audio_names queue and increment number_produced
