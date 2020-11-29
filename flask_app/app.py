@@ -4,6 +4,7 @@ from shutil import copyfile, copy
 import os
 import re
 import requests
+import threading
 
 
 app = Flask(__name__)
@@ -35,6 +36,12 @@ def create_bar(n):
         return ''
 
 
+def populate_queue():
+    l = len(audio_names)
+    for i in range(l):
+        create_bar(1)
+
+
 def get_audio():
     """Retrieves most recent audio file and returns it"""
     global audio_names
@@ -42,13 +49,15 @@ def get_audio():
     fn = audio_names.pop(0)
     print(fn)
 
-    
-
     return send_file(fn)
 
 
 @app.route('/music/next')
 def next():
+    """Returns new audio file from queue after HTML player finishes a file.
+    If queue empty, writes new music, then returns it.
+    """
+
     global audio_names
 
     if len(audio_names) > 0:
@@ -57,6 +66,9 @@ def next():
     else:
         create_bar(1)
         outp = get_audio()
+    
+    # Repopulate Queue while audio plays
+    threading.Thread(target=populate_queue).start()
     
     return outp
     
@@ -72,11 +84,6 @@ def add_header(r):
     r.headers["Expires"] = "0"
     r.headers['Cache-Control'] = 'public, max-age=0'
 
-    @r.call_on_close
-    def repopulate_queue():
-        while len(audio_names) < 10:
-            create_bar(1)
-            
     return r
 
 

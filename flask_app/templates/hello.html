@@ -14,23 +14,15 @@
     <h2>Randomly Generated Chiptune Jazz</h2>
     <p>This app randomly generates a chord progression and plays very naive modal jazz solos on top!</p>
 
-    <audio controls='controls', onended="playnext()", onplay="createnext()", id='player', muted>
+    <audio controls='controls', onended="playnext()", id='player', muted>
 
     </audio>
     
     
     <script>
-        function createnext(){
-            $.get('/music/create/1')
-            console.log("Generating next bar...");
-
-        };
-    </script>
-    <script>
         function playnext(){
             document.getElementById('player').src = '/music/next';
             document.getElementById('player').load();
-
             document.getElementById('player').play();
             
         };
