@@ -17,30 +17,34 @@ def hello():
     
 
 @app.route('/music/create/<n>', methods=['GET'])
-def create_bar(n):
+def create_bar():
     """Generates new bar to be played"""
 
     global audio_names
     global number_produced
-    
-    n = int(n)
+
     if len(audio_names) < 10:
-        main(n, 'temp/output')
+        main(1, f'temp/output_{number_produced}')
 
-        for i in range(n):
-            fn = f"temp/output_{number_produced}.wav"
-            number_produced += 1
-            new = re.sub('temp', 'static', fn)
 
-            copy(fn, new)
-            audio_names.append(new)
+        fn = f"temp/output_{number_produced}.wav"
+        number_produced += 1
+        new = re.sub('temp', 'static', fn)
 
-        audio_names = list(map(lambda x: re.sub('temp', 'static', x), audio_names))
+        copy(fn, new)
+        audio_names.append(new)
+
+    audio_names = list(map(lambda x: re.sub('temp', 'static', x), audio_names))
         
-        return ''
+    return ''
 
 
 def populate_queue():
+    """
+    Function to update queue after audio returned.
+    Triggered by new thread
+    """
+
     l = 10 - len(audio_names)
     for i in range(l):
         create_bar(1)
