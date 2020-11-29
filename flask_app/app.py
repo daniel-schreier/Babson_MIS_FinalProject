@@ -29,7 +29,7 @@ def create_bar():
         
         new = re.sub('temp', 'static', temp_fn)
 
-        copy(fn, new)
+        copy(temp_fn, new)
         audio_names.append(new)
         number_produced += 1
 
