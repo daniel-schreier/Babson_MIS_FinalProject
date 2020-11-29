@@ -16,7 +16,6 @@ def hello():
     return render_template('hello.html', next=next)
     
 
-@app.route('/music/create/<n>', methods=['GET'])
 def create_bar():
     """Generates new bar to be played"""
 
@@ -30,7 +29,7 @@ def create_bar():
         
         # Copy from temp to static
         new = re.sub('temp', 'static', temp_fn)
-        new = re.sub('output', f'{number_produced}', new)
+        new = re.sub('output', f'output_{number_produced}', new)
         copy(temp_fn, new)
 
         # Add to audio_names queue and increment number_produced
@@ -58,7 +57,8 @@ def get_audio():
     fn = audio_names.pop(0)
     print(fn)
 
-    return send_file(fn)
+    with open(fn, 'rb') as f:
+        return send_file(f)
 
 
 @app.route('/music/next')
