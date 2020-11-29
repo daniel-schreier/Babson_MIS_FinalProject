@@ -12,7 +12,7 @@ import threading
 
 app = Flask(__name__)
 audio_names = []
-number_produced = 0
+number_produced = 1 # starts at one so we can use % 10 in create_bar
 
 @app.route('/')
 def hello():
@@ -38,6 +38,7 @@ def create_bar():
         # Add to audio_names queue and increment number_produced
         audio_names.append(new)
         number_produced += 1
+        number_produced = number_produced % 10
 
     return ''
 
@@ -97,6 +98,10 @@ def add_header(r):
     r.headers['Cache-Control'] = 'public, max-age=0'
 
     return r
+
+@app.route('/architecture')
+def architecture_page():
+    return render_template('architecture.html', architecture_image=send_file('/static/Diagram.png'))
 
 
 if __name__ == '__main__':
