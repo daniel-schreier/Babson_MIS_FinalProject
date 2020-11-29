@@ -97,7 +97,7 @@ class Chord:
         if str(root) not in Note.valid_notes:
             raise ValueError("Invalid root note")
         if kind not in Chord.valid_chords:
-            raise ValueError(f"Innvalid Chord: please select from {Chord.valid_chords}")
+            raise ValueError(f"Invalid Chord: please select from {Chord.valid_chords}")
         
         self.root = str(root)
         self.kind = kind
@@ -124,6 +124,7 @@ class Chord:
         return cmap[self.kind](self.root)
 
     def next_chords(self):
+        """Based on the current chord, returns a list of Chord children which make 'harmonic sense' to choose next"""
         return [Chord(self.scale.notes[i], random.choice(self.chordmap[i])).to_child() for i in (0, 1, 3, 4, 6)]
     
 
@@ -229,7 +230,7 @@ class Scale:
 
     @classmethod
     def from_chord(cls, chord):
-        """Builds random scale based on provided chord object."""
+        """Returns random scale based on provided chord object."""
         if chord.kind not in Scale.valid_scales:
             raise ValueError("Scale unknown for provided chord")
 
@@ -274,6 +275,7 @@ class Scale:
                 mask[pos+1] = c
         
         # Generate scale tones, notes which imply an extension of the chord to some new sound
+        # Including possibility for chord tones to be here to increase variety/make riffs sound more grounded
         # Frequency depends on energy determined at start of riff generation
         for i, v in enumerate(mask):
             if v == 'r' and random.random() < energy:

@@ -14,7 +14,6 @@ def hello():
     return render_template('hello.html', next=next)
     
 
-
 @app.route('/music/create/<n>', methods=['GET'])
 def create_bar(n):
     """Generates new bar to be played"""
@@ -43,6 +42,8 @@ def get_audio():
     fn = audio_names.pop(0)
     print(fn)
 
+    
+
     return send_file(fn)
 
 
@@ -64,11 +65,18 @@ def add_header(r):
     """
     Add headers to both force latest IE rendering engine or Chrome Frame,
     and also to cache the rendered page for 10 minutes.
+    Sourced from https://stackoverflow.com/questions/34066804/disabling-caching-in-flask
     """
     r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     r.headers["Pragma"] = "no-cache"
     r.headers["Expires"] = "0"
     r.headers['Cache-Control'] = 'public, max-age=0'
+
+    @r.call_on_close
+    def repopulate_queue():
+        while len(audio_names) < 10:
+            create_bar(1)
+            
     return r
 
 
