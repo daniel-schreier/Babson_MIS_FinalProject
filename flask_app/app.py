@@ -9,6 +9,7 @@ import threading
 
 app = Flask(__name__)
 audio_names = []
+number_produced = 0
 
 @app.route('/')
 def hello():
@@ -20,12 +21,15 @@ def create_bar(n):
     """Generates new bar to be played"""
 
     global audio_names
+    global number_produced
+    
     n = int(n)
     if len(audio_names) < 10:
         main(n, 'temp/output')
 
         for i in range(n):
-            fn = f"temp/output_{i}.wav"
+            fn = f"temp/output_{number_produced}.wav"
+            number_produced += 1
             new = re.sub('temp', 'static', fn)
 
             copy(fn, new)
@@ -37,7 +41,7 @@ def create_bar(n):
 
 
 def populate_queue():
-    l = len(audio_names)
+    l = 10 - len(audio_names)
     for i in range(l):
         create_bar(1)
 
