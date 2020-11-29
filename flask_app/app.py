@@ -24,17 +24,19 @@ def create_bar():
     global number_produced
 
     if len(audio_names) < 10:
-        temp_fn = f'temp/output_{number_produced}.wav'
+        # Generate Bar
+        temp_fn = f'temp/output.wav'
         main(1, temp_fn)
         
+        # Copy from temp to static
         new = re.sub('temp', 'static', temp_fn)
-
+        new = re.sub('output', f'{number_produced}', temp_fn)
         copy(temp_fn, new)
+
+        # Add to audio_names queue and increment number_produced
         audio_names.append(new)
         number_produced += 1
 
-    audio_names = list(map(lambda x: re.sub('temp', 'static', x), audio_names))
-        
     return ''
 
 
