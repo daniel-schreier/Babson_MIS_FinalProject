@@ -101,7 +101,7 @@ def add_header(r):
 
 @app.route('/architecture')
 def architecture_page():
-    return render_template('architecture.html', architecture_image=send_file('/static/Diagram.png'))
+    return render_template('architecture.html', architecture_image=send_file('static/Diagram.png'))
 
 
 if __name__ == '__main__':
