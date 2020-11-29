@@ -7,11 +7,11 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
     <style>
-        body {background-color: 03544;}
-        audio {background-color: 006494;}
-        p {color: 051923;}
-        h1 {color: 051923;}
-        a {color: 051923;}
+        body {background-color: #003153;}
+        audio {background-color: #006494;}
+        p {color: #010b13;}
+        h1 {color: #010b13;}
+        a {color: #010b13;}
     </style>
 </head>
 <script src="http://code.jquery.com/jquery-1.11.0.min.js"> </script>
@@ -27,8 +27,10 @@
 
     <audio controls='controls', onended="playnext()", id='player', muted>
 
-    <a href="/architecture">View Architecture Overview</a>
-    
+
+    <form action="/architecture", method="GET">
+        <input type="submit" value="View Architecture Overview"/>
+    </form>
     
     
     <script>
