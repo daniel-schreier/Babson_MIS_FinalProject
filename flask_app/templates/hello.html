@@ -7,29 +7,31 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
     <style>
-        body {background-color: #003153;}
+        body {background-color: #006494;}
         audio {background-color: #006494;}
         p {color: #010b13;}
         h1 {color: #010b13;}
         a {color: #010b13;}
     </style>
 </head>
-<script src="http://code.jquery.com/jquery-1.11.0.min.js"> </script>
 
 
 <body>
     <h1>Hello, world!</h1>
     <h2>Randomly Generated Chiptune Jazz</h2>
     <p>
-        This app randomly generates a chord progression and plays very naive modal jazz solos on top!
+        This app randomly generates a chord progression and plays very naive modal jazz solos on top! <br>
         If you're experiencing issues, try disabling your browser cache and reloading. Enjoy!
     </p>
 
     <audio controls='controls', onended="playnext()", id='player', muted>
+    </audio>
 
-
+    <br>
+    <br>
+    
     <form action="/architecture", method="GET">
-        <input type="submit" value="View Architecture Overview"/>
+        <input type="submit" value="View Architecture Overview"/> </input>
     </form>
     
     
