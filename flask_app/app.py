@@ -104,5 +104,10 @@ def architecture_page():
     return render_template('architecture.html', architecture_image='static/Diagram.png')
 
 
+@app.route('/image/architecture')
+def get_image():
+    return send_file('static/Diagram.png')
+
+
 if __name__ == '__main__':
     app.run()
